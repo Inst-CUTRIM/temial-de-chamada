@@ -38,6 +38,23 @@ function emitirAtualizacao() {
     });
 }
 
+// --- NOVO: ROTA PARA REINICIAR/ZERAR TUDO ---
+app.get('/reiniciar', (req, res) => {
+    try {
+        nCounter = 0;
+        pCounter = 0;
+        fila = [];
+        historicoChamadas = [];
+        
+        console.log("Sistema resetado com sucesso!");
+        emitirAtualizacao(); // Avisa a TV que tudo sumiu e voltou ao zero
+        
+        res.send({ success: true, message: 'Contadores e filas zerados com sucesso.' });
+    } catch (error) {
+        res.status(500).send({ success: false, message: 'Erro ao reiniciar servidor.' });
+    }
+});
+
 // --- ROTA DE GERAÇÃO DE SENHAS ---
 app.get('/gerar/:tipo', (req, res) => {
     const tipo = req.params.tipo.toUpperCase();

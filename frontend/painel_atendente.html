@@ -5,20 +5,27 @@
     <title>Painel do Atendente - Chamada de Senhas</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
         h2 { text-align: center; color: #333; }
         .guiche-select { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background-color: #e9ecef; }
         .botoes-geracao, .botoes-chamada { margin-top: 20px; padding: 15px; border: 1px solid #eee; background-color: #f9f9f9; border-radius: 6px; }
-        button { padding: 15px 30px; margin: 10px; font-size: 18px; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.3s; }
+        
+        button { padding: 15px 25px; margin: 5px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.3s; font-weight: bold; }
         
         .btn-n { background-color: #007bff; }
         .btn-p { background-color: #dc3545; }
+        /* Botão Zerar em Laranja */
+        .btn-reset { background-color: #fd7e14; }
+        
         .btn-n:hover { background-color: #0056b3; }
         .btn-p:hover { background-color: #a71d2a; }
+        .btn-reset:hover { background-color: #d9680b; }
         
         .mensagem { margin-top: 20px; padding: 10px; border-radius: 4px; font-weight: bold; min-height: 20px; }
         .success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border-color: #f5c6fb; }
+        
+        .flex-buttons { display: flex; flex-wrap: wrap; align-items: center; }
     </style>
 </head>
 <body>
@@ -38,8 +45,11 @@
 
         <div class="botoes-geracao">
             <h3>1. Geração de Senhas</h3>
-            <button class="btn-n" onclick="gerarSenha('N')">GERAR PRÓXIMA N (AUTOMÁTICA)</button>
-            <button class="btn-p" onclick="gerarSenha('P')">GERAR PRÓXIMA P (AUTOMÁTICA)</button>
+            <div class="flex-buttons">
+                <button class="btn-n" onclick="gerarSenha('N')">GERAR PRÓXIMA N</button>
+                <button class="btn-p" onclick="gerarSenha('P')">GERAR PRÓXIMA P</button>
+                <button class="btn-reset" onclick="reiniciarContador()">ZERAR CONTADOR</button>
+            </div>
         </div>
 
         <div class="botoes-chamada">
@@ -50,12 +60,7 @@
     </div> 
 
     <script>
-        /* ALTERAÇÃO PARA REDE: 
-           Ao deixar vazio ou usar location.origin, ele funcionará tanto no 
-           seu computador quanto no link da internet (Render, Railway, etc).
-        */
         const API_BASE_URL = window.location.origin;
-        
         const guicheSelect = document.getElementById('guiche-id');
         const mensagemStatus = document.getElementById('mensagem-status');
         
@@ -72,15 +77,13 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/gerar/${tipo}`);
                 const data = await response.json();
-
                 if (data.success) {
-                    exibirMensagem(`Senha ${data.senha} gerada e adicionada à fila.`, 'success');
+                    exibirMensagem(`Senha ${data.senha} gerada.`, 'success');
                 } else {
                     exibirMensagem(`Erro: ${data.message}`, 'error');
                 }
             } catch (error) {
-                exibirMensagem(`ERRO: Falha na conexão com o servidor.`, 'error');
-                console.error('Erro:', error);
+                exibirMensagem(`ERRO: Conexão perdida.`, 'error');
             }
         }
 
@@ -89,15 +92,29 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/chamar/${guiche}/${tipoChamada}`); 
                 const data = await response.json();
-
                 if (data.success) {
-                    exibirMensagem(`Chamada OK: Senha ${data.chamada.id}, Mesa ${data.chamada.guiche}`, 'success');
+                    exibirMensagem(`Chamada OK: Senha ${data.chamada.id}`, 'success');
                 } else {
-                    exibirMensagem(`Erro na Chamada: ${data.message}`, 'error'); 
+                    exibirMensagem(`Fila vazia!`, 'error'); 
                 }
             } catch (error) {
-                exibirMensagem(`ERRO: Falha na conexão com o servidor.`, 'error');
-                console.error('Erro:', error);
+                exibirMensagem(`ERRO: Conexão perdida.`, 'error');
+            }
+        }
+
+        async function reiniciarContador() {
+            if (confirm("Deseja zerar o contador para 001?")) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/reiniciar`);
+                    const data = await response.json();
+                    if (data.success) {
+                        exibirMensagem("Contadores zerados com sucesso!", "success");
+                    } else {
+                        exibirMensagem("Erro ao zerar: " + data.message, "error");
+                    }
+                } catch (error) {
+                    exibirMensagem("ERRO: O servidor não aceitou o comando.", "error");
+                }
             }
         }
     </script>
